@@ -9,15 +9,27 @@ import {
   Text,
   View,
 } from 'react-native';
-import {CLEAR, colors, ENTER} from './src/constants';
+import {CLEAR, colors, colorsToEmoji, ENTER} from './src/constants';
 import Keyboard from './src/components/Keyboard';
+import Clipboard from '@react-native-clipboard/clipboard';
+import {words} from './src/words';
 
 const NUMBER_OF_TRIES = 6;
+
+const getDayOfTheYear = () => {
+  const now = new Date();
+  const start = new Date(now.getFullYear(), 0, 0);
+  const diff = now - start;
+  const oneDay = 1000 * 60 * 60 * 24;
+  const day = Math.floor(diff / oneDay);
+  return day;
+};
+const dayOfTheYear = getDayOfTheYear();
 const copyArray = arr => {
   return [...arr.map(rows => [...rows])];
 };
 const App: () => Node = () => {
-  const word = 'hello';
+  const word = words[dayOfTheYear].toLowerCase();
   const letters = word.split('');
 
   const [rows, setRows] = useState(
@@ -29,13 +41,31 @@ const App: () => Node = () => {
   const [gameState, setGameState] = useState('playing'); // won ,lost ,playing
 
   const checkGameState = () => {
-    if (checkIfWon()) {
-      Alert.alert('Hurray', 'You won!');
+    if (checkIfWon() && gameState !== 'won') {
+      Alert.alert('Hurray', 'You won!', [
+        {title: 'Share', onPress: shareScore},
+      ]);
       setGameState('won');
-    } else if (checkIfLost()) {
+    } else if (checkIfLost() && gameState !== 'lost') {
       Alert.alert('Meh', 'Try again tomorrow');
       setGameState('lost');
     }
+  };
+  const shareScore = () => {
+    const textMap = rows
+      .map((row, indexRow) =>
+        row
+          .map(
+            (cell, indexCell) =>
+              colorsToEmoji[getCellBGColor(indexRow, indexRow)],
+          )
+          .join(''),
+      )
+      .filter(row => row)
+      .join('\n');
+    const textToShare = `Wordle \n${textMap}`;
+    Clipboard.setString(textToShare);
+    Alert.alert('Copied successfully', 'Share your score on you social media');
   };
 
   const checkIfWon = () => {
@@ -46,7 +76,7 @@ const App: () => Node = () => {
   };
 
   const checkIfLost = () => {
-    return curRow === rows.length;
+    return !checkIfWon() && curRow === rows.length;
   };
 
   useEffect(() => {
