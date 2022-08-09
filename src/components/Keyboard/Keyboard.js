@@ -1,5 +1,5 @@
 import React from 'react';
-import {View, Text, Pressable} from 'react-native';
+import {View, Text, Pressable, TouchableOpacity} from 'react-native';
 import {keys, ENTER, CLEAR, colors} from '../../constants';
 import styles, {keyWidth} from './Keyboard.styles';
 
@@ -31,7 +31,9 @@ const Keyboard = ({
       {keys.map((keyRow, i) => (
         <View style={styles.row} key={`row-${i}`}>
           {keyRow.map(key => (
-            <Pressable
+            <TouchableOpacity
+              testID={`key_${key.toLowerCase()}_test_id`}
+              accessible={false}
               onPress={() => onKeyPressed(key)}
               disabled={greyCaps.includes(key)}
               key={key}
@@ -41,7 +43,7 @@ const Keyboard = ({
                 {backgroundColor: getKeyBGColor(key)},
               ]}>
               <Text style={styles.keyText}>{key.toUpperCase()}</Text>
-            </Pressable>
+            </TouchableOpacity>
           ))}
         </View>
       ))}
